@@ -1,11 +1,18 @@
 from sqlalchemy.orm import Session
 from app.models import User, Message, Group, GroupMember
-from passlib.context import CryptContext
+import bcrypt
 from typing import List, Optional
 from datetime import datetime
 
-# 密码加密上下文
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    """使用bcrypt哈希密码"""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+def verify_password_bcrypt(plain_password: str, hashed_password: str) -> bool:
+    """使用bcrypt验证密码"""
+    return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
 # ========== 用户操作 ==========
@@ -19,7 +26,7 @@ def get_user_by_id(db: Session, user_id: int) -> Optional[User]:
 
 def create_user(db: Session, username: str, password: str) -> User:
     """创建新用户"""
-    hashed_password = pwd_context.hash(password)
+    hashed_password = hash_password(password)
     db_user = User(
         username=username,
         password_hash=hashed_password
@@ -31,7 +38,7 @@ def create_user(db: Session, username: str, password: str) -> User:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """验证密码"""
-    return pwd_context.verify(plain_password, hashed_password)
+    return verify_password_bcrypt(plain_password, hashed_password)
 
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     """验证用户登录"""

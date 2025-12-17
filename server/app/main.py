@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
-from app.routers import auth, users
+from app.routers import auth, users, chat
 
 # 创建数据库表
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(auth.router)
 app.include_router(users.router)
+app.include_router(chat.router)
 
 @app.get("/")
 def read_root():
